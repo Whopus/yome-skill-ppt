@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "steps": [
+    { "kind": "user", "text": "新建一个 ppt，标题写 Q3 Review，再加一张空白页" },
+    { "kind": "assistant_text", "text": "好的，我来创建" },
+    { "kind": "tool_use", "tool": "bash", "commandHead": "ppt new ~/Desktop/Q3-Review.pptx" },
+    { "kind": "tool_result", "preview": "{\"ok\":true,\"created\":\"~/Desktop/Q3-Review.pptx\",\"slides\":1}", "ok": true },
+    { "kind": "tool_use", "tool": "bash", "commandHead": "ppt title 1 --text=\"Q3 Review\"" },
+    { "kind": "tool_result", "preview": "{\"ok\":true,\"slide\":1,\"title\":\"Q3 Review\"}", "ok": true },
+    { "kind": "tool_use", "tool": "bash", "commandHead": "ppt slide.add" },
+    { "kind": "tool_result", "preview": "{\"ok\":true,\"index\":2,\"layout\":6,\"totalSlides\":2}", "ok": true },
+    { "kind": "tool_use", "tool": "bash", "commandHead": "ppt save" },
+    { "kind": "tool_result", "preview": "{\"ok\":true,\"path\":\"~/Desktop/Q3-Review.pptx\"}", "ok": true },
+    { "kind": "assistant_final", "text": "已创建 Q3-Review.pptx（2 张），第 1 页标题 Q3 Review，已保存。" }
+  ]
+}

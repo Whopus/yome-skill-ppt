@@ -1,0 +1,72 @@
+{
+  "$schema": "https://yome.work/schema/yome-skill.json",
+  "slug": "@yome/ppt",
+  "name": "PowerPoint",
+  "description": "PowerPoint 演示文稿编辑命令（open/new/save/slides/slide.add/get/read/set/addtext/title/fmt/export）",
+  "domain": "ppt",
+  "version": "1.0.0",
+  "official": true,
+  "homepage": "https://yome.work/skills/@yome/ppt",
+  "repo": "https://github.com/Whopus/yome-skill-ppt",
+  "yome_min_version": "1.0.0",
+  "platforms": ["macos", "ios", "node", "sandbox"],
+  "delivery": {
+    "macos": {
+      "backend": "bundled",
+      "min_app_version": "1.0.0",
+      "implements_signature": ">=1.0.0 <2.0.0"
+    },
+    "ios": {
+      "backend": "bundled",
+      "min_app_version": "1.0.0",
+      "implements_signature": ">=1.0.0 <2.0.0"
+    },
+    "node": {
+      "backend": "ota",
+      "package": "backends/node",
+      "entry": "src/index.ts",
+      "implements_signature": ">=1.0.0 <2.0.0"
+    },
+    "sandbox": {
+      "backend": "ota",
+      "package": "backends/sandbox",
+      "entry": "src/index.ts",
+      "implements_signature": ">=1.0.0 <2.0.0"
+    }
+  },
+  "ota_overlay": {
+    "signature_version": "1.0.0",
+    "viewer_version": "1.0.0",
+    "data_version": "1.0.0"
+  },
+  "capabilities": ["fs:read", "fs:write", "applescript"],
+  "system_capabilities": ["fs:read", "fs:write", "applescript"],
+  "permissions_summary": {
+    "zh": "读写 .pptx 文件，调用 macOS Keynote / PowerPoint",
+    "en": "Read/write .pptx files, control macOS Keynote / PowerPoint"
+  },
+  "tags": ["productivity", "office", "presentation"],
+  "license": "MIT",
+  "author": {
+    "name": "Yome Official",
+    "github": "Whopus"
+  },
+  "commands": [
+    { "action": "open",         "desc": "打开已有 .pptx 文件" },
+    { "action": "new",          "desc": "新建空白演示文稿" },
+    { "action": "save",         "desc": "保存当前演示文稿" },
+    { "action": "close",        "desc": "关闭当前文件" },
+    { "action": "files",        "desc": "列出已打开的文件" },
+    { "action": "slides",       "desc": "列出当前演示文稿的所有幻灯片" },
+    { "action": "slide.add",    "desc": "新增一张幻灯片" },
+    { "action": "slide.delete", "desc": "删除指定幻灯片" },
+    { "action": "slide.move",   "desc": "调整幻灯片顺序" },
+    { "action": "get",          "desc": "读取某张幻灯片的全部形状" },
+    { "action": "read",         "desc": "读取某个形状的文字内容" },
+    { "action": "set",          "desc": "设置某个形状的文字" },
+    { "action": "addtext",      "desc": "在幻灯片上新增文本框" },
+    { "action": "title",        "desc": "设置幻灯片标题" },
+    { "action": "fmt",          "desc": "调整字体 / 颜色 / 对齐 / 加粗等格式" },
+    { "action": "export",       "desc": "导出为 PDF / 图片" }
+  ]
+}

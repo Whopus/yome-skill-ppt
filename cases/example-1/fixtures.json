@@ -1,0 +1,9 @@
+{
+  "baseTime": "2026-04-23T09:00:00+08:00",
+  "user": { "name": "Alice", "locale": "zh", "timeZone": "Asia/Shanghai" },
+  "skillStates": {
+    "ppt": {
+      "openFiles": []
+    }
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "rubric": "Agent must create a new pptx, set slide-1 title, then save without losing data.",
+  "expectedTrace": [
+    { "kind": "user", "text": "新建一个 ppt 文件叫 Hello.pptx" },
+    { "kind": "tool_use", "tool": "bash", "commandHead": "ppt new", "assert": { "mustContain": ["Hello.pptx"] } },
+    { "kind": "tool_result", "preview": "{\"ok\":true", "assert": { "mustContain": ["\"ok\":true"] } },
+    { "kind": "tool_use", "tool": "bash", "commandHead": "ppt title", "assert": { "mustContain": ["Hello World"] } },
+    { "kind": "tool_result", "preview": "{\"ok\":true", "assert": { "mustContain": ["\"ok\":true"] } },
+    { "kind": "tool_use", "tool": "bash", "commandHead": "ppt save" },
+    { "kind": "tool_result", "preview": "{\"ok\":true", "assert": { "mustContain": ["\"ok\":true"] } },
+    { "kind": "assistant_final", "textHint": "已保存", "assert": { "mustContain": ["Hello.pptx"] } }
+  ],
+  "behavior": {
+    "mustCallCommands": ["ppt new", "ppt title", "ppt save"],
+    "mustNotCallCommands": ["ppt close --save=false"],
+    "finalTextContains": ["Hello.pptx"]
+  },
+  "routing": {
+    "expectedAgentTypes": ["yome"]
+  },
+  "performance": {
+    "maxRounds": 6,
+    "maxDurationMs": 60000
+  },
+  "sideEffects": {
+    "expectToolUseRecorded": true
+  }
+}

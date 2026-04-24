@@ -1,0 +1,158 @@
+{
+  "$schema": "https://yome.work/schema/signature.json",
+  "domain": "ppt",
+  "signature_version": "1.0.0",
+  "label": { "zh": "PowerPoint 演示文稿", "en": "PowerPoint Presentation" },
+  "helpSummary": "open, new, save, close, files, slides, slide.add, slide.delete, slide.move, get, read, set, addtext, title, fmt, export",
+  "docs": { "zh": "\n## ppt 命令 — PowerPoint 演示文稿\n\n### 文件管理\nppt open <文件路径>                    打开 .pptx 文件\nppt new [<路径>] [--force]              新建演示文稿（给路径则直接落盘）\nppt save [--path=<另存路径>]           保存（另存为 .pptx）\nppt close [--save=true|false]          关闭\nppt files                              列出所有打开的演示文稿\n\n### 幻灯片管理\nppt slides                             列出所有幻灯片（序号、标题、形状数、布局）\nppt slide.add [--index=<位置>]         添加幻灯片，默认末尾（不要用 --layout，zh-CN 下不稳定）\nppt slide.delete <序号>                删除幻灯片\nppt slide.move <序号> --to=<目标位置>  移动幻灯片到目标位置前\n\n### 读取\nppt get <幻灯片序号>                   获取某张幻灯片的所有形状和文本\nppt read <幻灯片序号> --shape=<形状序号>  读取特定形状的文本和格式\n\n### 写入\nppt set <幻灯片序号> --shape=<形状序号> --text=<内容>   设置形状文本\nppt addtext <幻灯片序号> --text=<内容> [--left=100] [--top=200] [--width=400] [--height=50]  添加文本框\nppt title <幻灯片序号> --text=<标题>   设置幻灯片标题（shape 1）\n\n### 格式化\nppt fmt <幻灯片序号> --shape=<形状序号> [--bold] [--italic] [--size=<字号>] [--color=<颜色>] [--bg=<背景色>] [--align=left|center|right]\n  颜色/背景: 名称(black/red/blue/navy/darkblue等) 或 RGB(0,51,102) 或 hex(#003366)\n  所有参数可任意组合，单个属性失败不影响其他属性\n\n文本换行: 用 \\n 表示，如 --text=\"第一行\\n第二行\"\n路径: ~ 为主目录，相对路径基于 ~/Desktop\n除 open/new/files 外，所有操作命令作用于当前激活的演示文稿（需先 open 或 new）\n新建文稿默认已含 1 张空白幻灯片（含 2 个占位符: shape 1 为标题, shape 2 为副标题），slide.add 是从第 2 张开始追加\n", "en": "\n## ppt command — PowerPoint Presentation\n\n### File Management\nppt open <file_path>                   Open .pptx file\nppt new [<path>] [--force]             Create new presentation (with path: create and save)\nppt save [--path=<save_as_path>]       Save (save as .pptx)\nppt close [--save=true|false]          Close\nppt files                              List all open presentations\n\n### Slide Management\nppt slides                             List all slides (index, title, shape count, layout)\nppt slide.add [--index=<position>]     Add slide, default at end (do not use --layout, unstable on zh-CN)\nppt slide.delete <index>               Delete slide\nppt slide.move <index> --to=<target>   Move slide before target position\n\n### Read\nppt get <slide_index>                  Get all shapes and text of a slide\nppt read <slide_index> --shape=<shape_index>  Read text and format of a specific shape\n\n### Write\nppt set <slide_index> --shape=<shape_index> --text=<content>   Set shape text\nppt addtext <slide_index> --text=<content> [--left=100] [--top=200] [--width=400] [--height=50]  Add text box\nppt title <slide_index> --text=<title> Set slide title (shape 1)\n\n### Format\nppt fmt <slide_index> --shape=<shape_index> [--bold] [--italic] [--size=<font_size>] [--color=<color>] [--bg=<bg_color>] [--align=left|center|right]\n  Colors/bg: name (black/red/blue/navy/darkblue etc.) or RGB(0,51,102) or hex(#003366)\n  All params combine freely; a single attribute failing does not abort others\n\nNewline in text: use \\n, e.g. --text=\"Line 1\\nLine 2\"\nPath: ~ is home directory, relative paths are based on ~/Desktop\nExcept open/new/files, all commands operate on the currently active presentation (open or new first)\nNew presentation already contains 1 blank slide (2 placeholders: shape 1=title, shape 2=subtitle); slide.add appends starting from slide 2\n" },
+  "commands": {
+    "open": {
+      "usage": { "zh": "ppt open <文件路径>", "en": "ppt open <file_path>" },
+      "description": { "zh": "打开 .pptx 文件", "en": "Open .pptx file" },
+      "positional": "path",
+      "since": "1.0.0"
+    },
+    "new": {
+      "usage": { "zh": "ppt new [<路径>] [--force]", "en": "ppt new [<path>] [--force]" },
+      "description": { "zh": "新建演示文稿（默认已含 1 张空白幻灯片；给路径则直接落盘）", "en": "Create new presentation (already contains 1 blank slide; with path: create and save)" },
+      "positional": "path",
+      "params": {
+        "path": { "description": { "zh": "保存路径（.pptx），与 positional 等价", "en": "Save path (.pptx), equivalent to positional" } },
+        "force": { "description": { "zh": "路径已存在时强制覆盖", "en": "Overwrite if path already exists" } }
+      },
+      "since": "1.0.0"
+    },
+    "save": {
+      "usage": { "zh": "ppt save [--path=<另存路径>] [--force]", "en": "ppt save [--path=<save_as_path>] [--force]" },
+      "description": { "zh": "保存当前演示文稿", "en": "Save current presentation" },
+      "params": {
+        "path": { "description": { "zh": "另存为路径（.pptx）", "en": "Save-as path (.pptx)" } },
+        "force": { "description": { "zh": "path 已存在时强制覆盖", "en": "Overwrite if path already exists" } }
+      },
+      "since": "1.0.0"
+    },
+    "close": {
+      "usage": "ppt close [--save=true|false]",
+      "description": { "zh": "关闭当前演示文稿", "en": "Close current presentation" },
+      "params": { "save": { "description": { "zh": "是否保存", "en": "Whether to save" }, "values": ["true", "false"] } },
+      "since": "1.0.0"
+    },
+    "files": {
+      "usage": "ppt files",
+      "description": { "zh": "列出所有打开的演示文稿", "en": "List all open presentations" },
+      "compress": { "kind": "custom", "module": "Server/agent/compress/ppt.ts", "export": "compressFiles" },
+      "since": "1.0.0"
+    },
+    "slides": {
+      "usage": "ppt slides",
+      "description": { "zh": "列出所有幻灯片（序号、标题、形状数、布局）", "en": "List all slides (index, title, shape count, layout)" },
+      "compress": { "kind": "custom", "module": "Server/agent/compress/ppt.ts", "export": "compressSlides" },
+      "since": "1.0.0"
+    },
+    "slide.add": {
+      "usage": { "zh": "ppt slide.add [--index=<位置>] [--layout=<布局>]", "en": "ppt slide.add [--index=<position>] [--layout=<layout>]" },
+      "description": { "zh": "添加幻灯片。--index=N 表示插到第 N 张前（=1 即插到最前）；省略则追加到末尾", "en": "Add slide. --index=N inserts before slide N (=1 means insert at the very beginning); omit to append at end" },
+      "params": {
+        "index": { "description": { "zh": "插入位置：在该序号前插入（1=最前面）", "en": "Insert position: before this index (1 = very front)" } },
+        "layout": {
+          "description": { "zh": "布局: 1=title slide, 2=title+content, 5=title only, 6=blank（数字索引比名称更可靠）", "en": "Layout: 1=title slide, 2=title+content, 5=title only, 6=blank (numeric index more reliable than name)" }
+        }
+      },
+      "since": "1.0.0"
+    },
+    "slide.delete": {
+      "usage": { "zh": "ppt slide.delete <序号> [--force]", "en": "ppt slide.delete <index> [--force]" },
+      "description": { "zh": "删除幻灯片。含内容（>0 个 shape）的幻灯片需 --force 才能删", "en": "Delete slide. Slides with content (>0 shapes) require --force to delete" },
+      "positional": "index",
+      "params": { "force": { "description": { "zh": "强制删除非空幻灯片", "en": "Force delete non-empty slide" } } },
+      "since": "1.0.0"
+    },
+    "slide.move": {
+      "usage": { "zh": "ppt slide.move <序号> --to=<目标位置>", "en": "ppt slide.move <index> --to=<target_position>" },
+      "description": { "zh": "移动幻灯片到指定位置前", "en": "Move slide before the specified position" },
+      "positional": "index",
+      "params": { "to": { "required": true, "description": { "zh": "目标位置（移动到该序号前）", "en": "Target position (move before this index)" } } },
+      "since": "1.0.0"
+    },
+    "get": {
+      "usage": { "zh": "ppt get <幻灯片序号>", "en": "ppt get <slide_index>" },
+      "description": { "zh": "获取某张幻灯片的所有形状和文本", "en": "Get all shapes and text of a slide" },
+      "positional": "slideIndex",
+      "compress": { "kind": "custom", "module": "Server/agent/compress/ppt.ts", "export": "compressGet" },
+      "since": "1.0.0"
+    },
+    "read": {
+      "usage": { "zh": "ppt read <幻灯片序号> --shape=<形状序号>", "en": "ppt read <slide_index> --shape=<shape_index>" },
+      "description": { "zh": "读取特定形状的文本和格式", "en": "Read text and format of a specific shape" },
+      "positional": "slideIndex",
+      "params": { "shape": { "required": true, "description": { "zh": "形状序号", "en": "Shape index" } } },
+      "compress": { "kind": "custom", "module": "Server/agent/compress/ppt.ts", "export": "compressRead" },
+      "since": "1.0.0"
+    },
+    "set": {
+      "usage": { "zh": "ppt set <幻灯片序号> --shape=<形状序号> --text=<内容>", "en": "ppt set <slide_index> --shape=<shape_index> --text=<content>" },
+      "description": { "zh": "设置形状文本", "en": "Set shape text" },
+      "positional": "slideIndex",
+      "params": {
+        "shape": { "required": true, "description": { "zh": "形状序号", "en": "Shape index" } },
+        "text": { "required": true, "description": { "zh": "文本内容", "en": "Text content" } }
+      },
+      "since": "1.0.0"
+    },
+    "addtext": {
+      "usage": { "zh": "ppt addtext <幻灯片序号> --text=<内容> [--left=100] [--top=200] [--width=400] [--height=50] [--size=<字号>] [--color=<颜色>] [--bold] [--italic]", "en": "ppt addtext <slide_index> --text=<content> [--left=100] [--top=200] [--width=400] [--height=50] [--size=<font_size>] [--color=<color>] [--bold] [--italic]" },
+      "description": { "zh": "添加文本框（返回 shape 序号）", "en": "Add text box (returns shape index)" },
+      "positional": "slideIndex",
+      "params": {
+        "text": { "required": true, "description": { "zh": "文本内容", "en": "Text content" } },
+        "left": { "description": { "zh": "左边距 pt（默认 100，幻灯片宽通常 720pt）", "en": "Left in pt (default 100; slide width is typically 720pt)" } },
+        "top": { "description": { "zh": "上边距 pt（默认 200，避开顶部标题区）", "en": "Top in pt (default 200; below title area)" } },
+        "width": { "description": { "zh": "宽度 pt（默认 400）", "en": "Width in pt (default 400)" } },
+        "height": { "description": { "zh": "高度 pt（默认 50）", "en": "Height in pt (default 50)" } },
+        "size": { "description": { "zh": "字号", "en": "Font size" } },
+        "color": {
+          "description": { "zh": "字体颜色: 名称(black/red/blue/navy/darkblue...) 或 RGB(0,51,102) 或 hex(#003366)", "en": "Font color: name (black/red/blue/navy/darkblue...) or RGB(0,51,102) or hex(#003366)" }
+        },
+        "bold": { "description": { "zh": "加粗", "en": "Bold" } },
+        "italic": { "description": { "zh": "斜体", "en": "Italic" } }
+      },
+      "since": "1.0.0"
+    },
+    "title": {
+      "usage": { "zh": "ppt title <幻灯片序号> --text=<标题>", "en": "ppt title <slide_index> --text=<title>" },
+      "description": { "zh": "设置幻灯片标题（shape 1）", "en": "Set slide title (shape 1)" },
+      "positional": "slideIndex",
+      "params": { "text": { "required": true, "description": { "zh": "标题文本", "en": "Title text" } } },
+      "since": "1.0.0"
+    },
+    "export": {
+      "usage": { "zh": "ppt export --format=<格式> --path=<输出路径> [--force]", "en": "ppt export --format=<format> --path=<output_path> [--force]" },
+      "description": { "zh": "导出当前演示文稿", "en": "Export current presentation" },
+      "params": {
+        "format": { "required": true, "description": { "zh": "导出格式", "en": "Export format" }, "values": ["pdf", "images", "png", "jpg"] },
+        "path": { "required": true, "description": { "zh": "输出路径", "en": "Output path" } },
+        "force": { "description": { "zh": "path 已存在时强制覆盖", "en": "Overwrite if path already exists" } }
+      },
+      "since": "1.0.0"
+    },
+    "fmt": {
+      "usage": { "zh": "ppt fmt <幻灯片序号> --shape=<形状序号> [--bold] [--italic] [--size=<字号>] [--color=<颜色>] [--bg=<背景色>] [--align=left|center|right]", "en": "ppt fmt <slide_index> --shape=<shape_index> [--bold] [--italic] [--size=<font_size>] [--color=<color>] [--bg=<bg_color>] [--align=left|center|right]" },
+      "description": { "zh": "格式化形状文本与填充。所有参数可任意组合；单个属性失败不影响其他属性", "en": "Format shape text and fill. All params combine freely; a single attribute failing does not abort others" },
+      "positional": "slideIndex",
+      "params": {
+        "shape": { "required": true, "description": { "zh": "形状序号", "en": "Shape index" } },
+        "bold": { "description": { "zh": "加粗", "en": "Bold" } },
+        "italic": { "description": { "zh": "斜体", "en": "Italic" } },
+        "size": { "description": { "zh": "字号", "en": "Font size" } },
+        "color": {
+          "description": { "zh": "字体颜色: 名称(black/red/blue/navy/darkblue...) 或 RGB(0,51,102) 或 hex(#003366)", "en": "Font color: name (black/red/blue/navy/darkblue...) or RGB(0,51,102) or hex(#003366)" }
+        },
+        "bg": { "description": { "zh": "形状填充色（fill color）: 名称 | RGB | hex", "en": "Shape fill color: name | RGB | hex" } },
+        "align": { "description": { "zh": "段落水平对齐", "en": "Paragraph horizontal alignment" }, "values": ["left", "center", "right"] }
+      },
+      "since": "1.0.0"
+    }
+  },
+  "compactDocs": { "zh": "ppt — PowerPoint: open/new [<path>] [--force]/save/close/files | slides | slide.add [--index] | slide.delete/slide.move | get/read <idx> [--shape] | set <idx> --shape --text | addtext --text [--left --top --width --height] | title <idx> --text | fmt --shape [--bold --italic --size --color --bg --align]  Color/bg: name/RGB(0,51,102)/hex(#003366). \\n=newline. No --layout on zh-CN. shape1=title, shape2=subtitle", "en": "ppt — PowerPoint: open/new [<path>] [--force]/save/close/files | slides | slide.add [--index] | slide.delete/slide.move | get/read <idx> [--shape] | set <idx> --shape --text | addtext --text [--left --top --width --height] | title <idx> --text | fmt --shape [--bold --italic --size --color --bg --align]  Color/bg: name/RGB(0,51,102)/hex(#003366). \\n=newline. No --layout on zh-CN. shape1=title, shape2=subtitle" },
+  "batchable": true
+}

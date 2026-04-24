@@ -1,0 +1,392 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>@yome/ppt viewer</title>
+  <style>
+    :root {
+      --bg: #0b0b0c;
+      --panel: #15161a;
+      --panel-2: #1d1f24;
+      --border: #2a2c33;
+      --text: #e8e8ec;
+      --muted: #9095a0;
+      --accent: #4f8cff;
+      --slide-bg: #ffffff;
+      --slide-fg: #111;
+      --slide-shadow: 0 1px 2px rgba(0,0,0,.35), 0 8px 24px rgba(0,0,0,.25);
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text); font: 13px/1.4 -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif; }
+    body { display: flex; flex-direction: column; }
+
+    header {
+      flex: 0 0 auto;
+      padding: 8px 12px;
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 12px;
+    }
+    header .title { font-weight: 600; }
+    header .meta { color: var(--muted); }
+    header .spacer { flex: 1; }
+
+    .timeline {
+      flex: 0 0 auto;
+      background: var(--panel-2);
+      border-bottom: 1px solid var(--border);
+      padding: 8px 12px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .timeline button {
+      background: transparent; border: 1px solid var(--border); color: var(--text);
+      border-radius: 4px; padding: 2px 8px; cursor: pointer;
+    }
+    .timeline button:hover { border-color: var(--accent); color: var(--accent); }
+    .timeline input[type=range] { flex: 1; accent-color: var(--accent); }
+    .timeline .step-label { color: var(--muted); min-width: 64px; text-align: right; font-variant-numeric: tabular-nums; }
+
+    main {
+      flex: 1 1 auto;
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      min-height: 0;
+    }
+
+    aside {
+      background: var(--panel);
+      border-right: 1px solid var(--border);
+      overflow-y: auto;
+      padding: 8px;
+    }
+    aside .file {
+      padding: 6px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      color: var(--muted);
+      display: flex; gap: 6px; align-items: center;
+    }
+    aside .file:hover { background: var(--panel-2); color: var(--text); }
+    aside .file.active { background: var(--panel-2); color: var(--text); }
+    aside .file .dot { width: 6px; height: 6px; border-radius: 50%; background: transparent; }
+    aside .file.dirty .dot { background: var(--accent); }
+    aside .file .count { margin-left: auto; color: var(--muted); font-variant-numeric: tabular-nums; }
+    aside .empty { color: var(--muted); padding: 8px; }
+
+    section.deck {
+      overflow-y: auto;
+      padding: 16px;
+      display: flex; flex-direction: column; gap: 16px;
+    }
+    section.deck .empty { color: var(--muted); padding: 32px; text-align: center; }
+
+    .slide-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .slide-card .slide-head {
+      padding: 6px 10px;
+      background: var(--panel-2);
+      color: var(--muted);
+      display: flex; gap: 8px; align-items: center;
+      border-bottom: 1px solid var(--border);
+    }
+    .slide-card .slide-head .idx { color: var(--text); font-weight: 600; }
+    .slide-card .slide-head .title { color: var(--text); }
+    .slide-card .slide-head .layout { margin-left: auto; }
+
+    .slide-canvas {
+      position: relative;
+      background: var(--slide-bg);
+      color: var(--slide-fg);
+      width: 100%;
+      /* 16:9 like a 720x405 slide */
+      aspect-ratio: 16 / 9;
+      box-shadow: var(--slide-shadow);
+    }
+    .shape {
+      position: absolute;
+      padding: 6px;
+      overflow: hidden;
+      white-space: pre-wrap;
+    }
+    .shape.placeholder {
+      color: #9aa0a6;
+      font-style: italic;
+    }
+    .shape.empty-content {
+      display: flex; align-items: center; justify-content: center;
+      width: 100%; height: 100%;
+      color: #aaa;
+    }
+
+    footer {
+      flex: 0 0 auto;
+      padding: 6px 12px;
+      background: var(--panel);
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      display: flex; gap: 12px;
+    }
+    footer .ok  { color: #4caf50; }
+    footer .err { color: #ff5252; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="title">@yome/ppt</div>
+    <div class="meta" id="meta">viewer/index.html — single-direction trace renderer</div>
+    <div class="spacer"></div>
+    <div class="meta" id="status">waiting for init…</div>
+  </header>
+
+  <div class="timeline">
+    <button id="prev" title="Previous step">◀</button>
+    <button id="next" title="Next step">▶</button>
+    <input id="seek" type="range" min="0" max="0" value="0" step="1">
+    <div class="step-label" id="step-label">0 / 0</div>
+  </div>
+
+  <main>
+    <aside id="files"><div class="empty">No files open</div></aside>
+    <section class="deck" id="deck"><div class="empty">No active presentation</div></section>
+  </main>
+
+  <footer>
+    <div>step <span id="footer-step">0</span></div>
+    <div>last action: <span id="footer-action">—</span></div>
+    <div>last result: <span id="footer-result">—</span></div>
+  </footer>
+
+<script type="module">
+/*
+ * Viewer protocol (spec 3.3):
+ *   parent → iframe:
+ *     { type: 'init', initialState? }
+ *     { type: 'load-trace', trace: TraceStep[] }
+ *     { type: 'seek', step: number }
+ *   iframe → parent:
+ *     { type: 'ready' }
+ *     { type: 'seeked', step: number }
+ *
+ * The viewer is single-direction: it never sends commands, it only renders
+ * what the trace dictates. The mutation logic lives in handler.mjs which is
+ * also imported by the parity test, so there is no risk of drift between
+ * the visual state and what tests assert.
+ */
+import { parseCommand, applyCommand, getActiveFile } from './handler.mjs';
+(function () {
+  'use strict';
+
+  // ── State held by the viewer ──
+  var initialState = { openFiles: [] };
+  var trace = []; // TraceStep[]
+  var currentStep = 0;
+
+  // Per-step memo so seek() is O(1) after the first pass.
+  var snapshots = []; // snapshots[i] = state after step i (0 = initialState)
+  var actions   = []; // actions[i] = { kind, command?, ok?, summary?, err? } describing what happened to land on snapshots[i]
+
+  // ── Rendering ──
+  function setStatus(text, kind) {
+    var el = document.getElementById('status');
+    el.textContent = text;
+    el.style.color = kind === 'err' ? 'var(--muted)' : 'var(--muted)';
+  }
+  function clone(o) { return JSON.parse(JSON.stringify(o)); }
+
+  function rebuildSnapshots() {
+    snapshots = [clone(initialState)];
+    actions = [{ kind: 'init', summary: 'initial state' }];
+    var state = clone(initialState);
+    for (var i = 0; i < trace.length; i++) {
+      var step = trace[i];
+      var rec = { kind: step.kind };
+      if (step.kind === 'tool_use' && step.tool === 'bash') {
+        var parsed = parseCommand(step.commandHead || '');
+        if (parsed.domain === 'ppt') {
+          var r = applyCommand(state, parsed);
+          rec.command = step.commandHead;
+          rec.ok = r.ok; rec.summary = r.summary; rec.err = r.err;
+        } else {
+          rec.command = step.commandHead;
+          rec.summary = '(non-ppt) ' + parsed.domain + ' ' + parsed.action;
+        }
+      } else if (step.kind === 'tool_use') {
+        rec.summary = step.tool;
+      } else if (step.kind === 'tool_result') {
+        rec.summary = step.preview;
+        rec.ok = step.ok !== false;
+      } else if (step.kind === 'user') {
+        rec.summary = '👤 ' + (step.text || '');
+      } else if (step.kind === 'assistant_text' || step.kind === 'assistant_final') {
+        rec.summary = '🤖 ' + (step.text || '');
+      }
+      snapshots.push(clone(state));
+      actions.push(rec);
+    }
+    var seek = document.getElementById('seek');
+    seek.max = String(snapshots.length - 1);
+    seek.value = String(currentStep);
+    document.getElementById('step-label').textContent = currentStep + ' / ' + (snapshots.length - 1);
+  }
+
+  function renderFiles(state) {
+    var container = document.getElementById('files');
+    if (!state.openFiles.length) {
+      container.innerHTML = '<div class="empty">No files open</div>';
+      return;
+    }
+    var html = '';
+    for (var i = 0; i < state.openFiles.length; i++) {
+      var f = state.openFiles[i];
+      var cls = 'file' + (f.active ? ' active' : '') + (f.dirty ? ' dirty' : '');
+      html += '<div class="' + cls + '">' +
+        '<span class="dot"></span>' +
+        '<span class="name">' + escapeHtml(f.path) + '</span>' +
+        '<span class="count">' + f.slides.length + '</span>' +
+        '</div>';
+    }
+    container.innerHTML = html;
+  }
+
+  function renderDeck(state) {
+    var deck = document.getElementById('deck');
+    var active = getActiveFile(state);
+    if (!active) {
+      deck.innerHTML = '<div class="empty">No active presentation</div>';
+      return;
+    }
+    if (!active.slides.length) {
+      deck.innerHTML = '<div class="empty">' + escapeHtml(active.path) + ' — no slides</div>';
+      return;
+    }
+    var html = '';
+    for (var i = 0; i < active.slides.length; i++) {
+      var s = active.slides[i];
+      html += '<div class="slide-card">' +
+        '<div class="slide-head">' +
+          '<span class="idx">' + s.index + '</span>' +
+          '<span class="title">' + escapeHtml(s.title || '(untitled)') + '</span>' +
+          '<span class="layout">layout ' + (s.layout != null ? s.layout : '–') + ' · ' + s.shapes.length + ' shapes</span>' +
+        '</div>' +
+        '<div class="slide-canvas">' + renderShapes(s.shapes) + '</div>' +
+      '</div>';
+    }
+    deck.innerHTML = html;
+  }
+
+  function renderShapes(shapes) {
+    if (!shapes.length) return '<div class="shape empty-content">empty slide</div>';
+    var SLIDE_W = 720, SLIDE_H = 405; // canvas reference in points
+    var html = '';
+    for (var i = 0; i < shapes.length; i++) {
+      var sh = shapes[i];
+      var hasText = !!(sh.text && String(sh.text).length);
+      var content = hasText ? escapeHtml(String(sh.text)) : escapeHtml(sh.name || 'placeholder');
+      var leftPct  = sh.left   != null ? (sh.left   / SLIDE_W * 100) : (sh.index === 1 ? 8 : 8);
+      var topPct   = sh.top    != null ? (sh.top    / SLIDE_H * 100) : (sh.index === 1 ? 8 : 35 + i * 8);
+      var widthPct = sh.width  != null ? (sh.width  / SLIDE_W * 100) : 84;
+      var heightPct= sh.height != null ? (sh.height / SLIDE_H * 100) : (sh.index === 1 ? 18 : 12);
+      var style = 'left:' + leftPct + '%;top:' + topPct + '%;width:' + widthPct + '%;height:' + heightPct + '%;';
+      if (sh.fontSize) style += 'font-size:' + sh.fontSize + 'px;';
+      if (sh.color) style += 'color:' + cssColor(sh.color) + ';';
+      if (sh.bg) style += 'background:' + cssColor(sh.bg) + ';';
+      if (sh.bold) style += 'font-weight:600;';
+      if (sh.italic) style += 'font-style:italic;';
+      if (sh.align) style += 'text-align:' + sh.align + ';';
+      var cls = 'shape' + (hasText ? '' : ' placeholder');
+      html += '<div class="' + cls + '" style="' + style + '">' + content + '</div>';
+    }
+    return html;
+  }
+
+  function cssColor(v) {
+    if (!v) return '';
+    if (typeof v !== 'string') return '';
+    var s = v.trim();
+    if (s.startsWith('#')) return s;
+    if (s.startsWith('rgb')) return s;
+    if (/^[A-Za-z]+$/.test(s)) return s;
+    var m = s.match(/^(\d+),\s*(\d+),\s*(\d+)$/);
+    if (m) return 'rgb(' + m[1] + ',' + m[2] + ',' + m[3] + ')';
+    return '';
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return c === '&' ? '&amp;' : c === '<' ? '&lt;' : c === '>' ? '&gt;' : c === '"' ? '&quot;' : '&#39;';
+    });
+  }
+
+  function render(stepIdx) {
+    if (!snapshots.length) return;
+    var i = Math.max(0, Math.min(snapshots.length - 1, stepIdx | 0));
+    currentStep = i;
+    var state = snapshots[i];
+    renderFiles(state);
+    renderDeck(state);
+    document.getElementById('seek').value = String(i);
+    document.getElementById('step-label').textContent = i + ' / ' + (snapshots.length - 1);
+    var act = actions[i] || {};
+    document.getElementById('footer-step').textContent = String(i);
+    document.getElementById('footer-action').textContent = act.command || act.summary || act.kind || '—';
+    var resultEl = document.getElementById('footer-result');
+    resultEl.textContent = act.ok === false ? (act.err || 'fail') : (act.summary || '—');
+    resultEl.className = act.ok === false ? 'err' : 'ok';
+  }
+
+  // ── postMessage protocol ──
+  function send(msg) {
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage(msg, '*');
+    }
+  }
+
+  window.addEventListener('message', function (ev) {
+    var msg = ev.data;
+    if (!msg || typeof msg !== 'object') return;
+    if (msg.type === 'init') {
+      initialState = msg.initialState || { openFiles: [] };
+      trace = [];
+      currentStep = 0;
+      rebuildSnapshots();
+      render(0);
+      setStatus('initialized');
+      send({ type: 'ready' });
+      return;
+    }
+    if (msg.type === 'load-trace') {
+      trace = Array.isArray(msg.trace) ? msg.trace : [];
+      currentStep = 0;
+      rebuildSnapshots();
+      render(0);
+      setStatus('trace loaded · ' + trace.length + ' steps');
+      send({ type: 'ready' });
+      return;
+    }
+    if (msg.type === 'seek') {
+      var s = typeof msg.step === 'number' ? msg.step : 0;
+      render(s);
+      send({ type: 'seeked', step: currentStep });
+      return;
+    }
+  });
+
+  // ── Local UI controls (also work standalone, e.g. opened directly) ──
+  document.getElementById('prev').addEventListener('click', function () { render(currentStep - 1); send({ type: 'seeked', step: currentStep }); });
+  document.getElementById('next').addEventListener('click', function () { render(currentStep + 1); send({ type: 'seeked', step: currentStep }); });
+  document.getElementById('seek').addEventListener('input', function (e) { render(Number(e.target.value)); send({ type: 'seeked', step: currentStep }); });
+
+  // Standalone fallback: if no parent ever sends init, show the empty viewer.
+  rebuildSnapshots();
+  render(0);
+  setStatus('ready (no parent)');
+  send({ type: 'ready' });
+})();
+</script>
+</body>
+</html>

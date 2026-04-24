@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "scorer": "yome.benchmarks.compare@1",
+  "weights": {
+    "behavior": 0.4,
+    "routing": 0.1,
+    "performance": 0.2,
+    "sideEffects": 0.1,
+    "trace": 0.2
+  },
+  "passThreshold": 0.7
+}
