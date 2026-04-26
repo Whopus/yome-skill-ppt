@@ -4,7 +4,7 @@
   "name": "PowerPoint",
   "description": "PowerPoint 演示文稿编辑命令（open/new/save/slides/slide.add/get/read/set/addtext/title/fmt/export）",
   "domain": "ppt",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "official": true,
   "homepage": "https://yome.work/skills/@yome/ppt",
   "repo": "https://github.com/Whopus/yome-skill-ppt",
