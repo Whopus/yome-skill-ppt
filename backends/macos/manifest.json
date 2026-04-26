@@ -1,0 +1,142 @@
+{
+  "$comment": "Declarative macOS backend for @yome/ppt. Consumed by cli/src/skills/runner/dispatcher.ts. Each action maps to one .applescript template; placeholders {{name}} / {{name|json}} / {{name|posix}} / {{name|bool}} / {{name|as_int}} / {{name|rgb}} / {{name|align}} are filled from positionals/flags before osascript runs. Mirror of Yome/macOS/Bridge/PowerPointBridge.swift.",
+  "appBundleId": "com.microsoft.PowerPoint",
+  "appName": "Microsoft PowerPoint",
+  "actions": {
+    "open": {
+      "script": "open.applescript",
+      "openViaLaunchServices": true,
+      "pollScript": "open.poll.applescript",
+      "args": [
+        { "name": "path", "from": "positional|--path", "required": true }
+      ],
+      "uses": ["fs:read", "applescript"]
+    },
+    "new": {
+      "script": "new.applescript",
+      "args": [
+        { "name": "path",  "from": "positional|--path", "default": "" },
+        { "name": "force", "from": "--force", "type": "bool", "default": false }
+      ],
+      "uses": ["fs:write", "applescript"]
+    },
+    "save": {
+      "script": "save.applescript",
+      "args": [
+        { "name": "path",  "from": "--path",  "default": "" },
+        { "name": "force", "from": "--force", "type": "bool", "default": false }
+      ],
+      "uses": ["fs:write", "applescript"]
+    },
+    "close": {
+      "script": "close.applescript",
+      "args": [
+        { "name": "save", "from": "--save", "default": "true" }
+      ],
+      "uses": ["applescript"]
+    },
+    "files": {
+      "script": "files.applescript",
+      "uses": ["applescript"]
+    },
+    "slides": {
+      "script": "slides.applescript",
+      "uses": ["applescript"]
+    },
+    "slide.add": {
+      "script": "slide.add.applescript",
+      "args": [
+        { "name": "index",  "from": "--index",  "default": "" },
+        { "name": "layout", "from": "--layout", "default": "" }
+      ],
+      "uses": ["applescript"]
+    },
+    "slide.delete": {
+      "script": "slide.delete.applescript",
+      "args": [
+        { "name": "index", "from": "positional|--index", "required": true },
+        { "name": "force", "from": "--force", "type": "bool", "default": false }
+      ],
+      "uses": ["applescript"]
+    },
+    "slide.move": {
+      "script": "slide.move.applescript",
+      "args": [
+        { "name": "from", "from": "positional|--from", "required": true },
+        { "name": "to",   "from": "--to",              "required": true }
+      ],
+      "uses": ["applescript"]
+    },
+    "get": {
+      "script": "get.applescript",
+      "args": [
+        { "name": "slide", "from": "positional|--slide", "required": true }
+      ],
+      "uses": ["applescript"]
+    },
+    "read": {
+      "script": "read.applescript",
+      "args": [
+        { "name": "slide", "from": "positional|--slide", "required": true },
+        { "name": "shape", "from": "--shape", "required": true }
+      ],
+      "uses": ["applescript"]
+    },
+    "set": {
+      "script": "set.applescript",
+      "args": [
+        { "name": "slide", "from": "positional|--slide", "required": true },
+        { "name": "shape", "from": "--shape", "required": true },
+        { "name": "text",  "from": "--text",  "required": true }
+      ],
+      "uses": ["applescript"]
+    },
+    "addtext": {
+      "script": "addtext.applescript",
+      "args": [
+        { "name": "slide",  "from": "positional|--slide", "required": true },
+        { "name": "text",   "from": "--text",   "required": true },
+        { "name": "left",   "from": "--left",   "default": "100" },
+        { "name": "top",    "from": "--top",    "default": "200" },
+        { "name": "width",  "from": "--width",  "default": "400" },
+        { "name": "height", "from": "--height", "default": "50" },
+        { "name": "size",   "from": "--size",   "default": "" },
+        { "name": "color",  "from": "--color",  "default": "" },
+        { "name": "bold",   "from": "--bold",   "type": "bool", "default": false },
+        { "name": "italic", "from": "--italic", "type": "bool", "default": false }
+      ],
+      "uses": ["applescript"]
+    },
+    "title": {
+      "script": "title.applescript",
+      "args": [
+        { "name": "slide", "from": "positional|--slide", "required": true },
+        { "name": "text",  "from": "--text", "required": true }
+      ],
+      "uses": ["applescript"]
+    },
+    "fmt": {
+      "script": "fmt.applescript",
+      "args": [
+        { "name": "slide",  "from": "positional|--slide", "required": true },
+        { "name": "shape",  "from": "--shape",  "required": true },
+        { "name": "bold",   "from": "--bold",   "type": "bool", "default": false },
+        { "name": "italic", "from": "--italic", "type": "bool", "default": false },
+        { "name": "size",   "from": "--size",   "default": "" },
+        { "name": "color",  "from": "--color",  "default": "" },
+        { "name": "bg",     "from": "--bg",     "default": "" },
+        { "name": "align",  "from": "--align",  "default": "" }
+      ],
+      "uses": ["applescript"]
+    },
+    "export": {
+      "script": "export.applescript",
+      "args": [
+        { "name": "format", "from": "--format", "required": true },
+        { "name": "path",   "from": "--path",   "required": true },
+        { "name": "force",  "from": "--force",  "type": "bool", "default": false }
+      ],
+      "uses": ["fs:write", "applescript"]
+    }
+  }
+}

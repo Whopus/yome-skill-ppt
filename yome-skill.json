@@ -9,22 +9,17 @@
   "homepage": "https://yome.work/skills/@yome/ppt",
   "repo": "https://github.com/Whopus/yome-skill-ppt",
   "yome_min_version": "1.0.0",
-  "platforms": ["macos", "ios", "node", "sandbox"],
+  "platforms": ["macos", "ios", "sandbox"],
   "delivery": {
     "macos": {
-      "backend": "bundled",
-      "min_app_version": "1.0.0",
+      "backend": "ota",
+      "package": "backends/macos",
+      "manifest": "manifest.json",
       "implements_signature": ">=1.0.0 <2.0.0"
     },
     "ios": {
       "backend": "bundled",
       "min_app_version": "1.0.0",
-      "implements_signature": ">=1.0.0 <2.0.0"
-    },
-    "node": {
-      "backend": "ota",
-      "package": "backends/node",
-      "entry": "src/index.ts",
       "implements_signature": ">=1.0.0 <2.0.0"
     },
     "sandbox": {
