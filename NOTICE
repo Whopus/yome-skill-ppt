@@ -1,0 +1,9 @@
+@yome/ppt — official Yome skill for Microsoft PowerPoint (macOS)
+Copyright 2024-2026 Whopus / Yome contributors
+
+Licensed under the Apache License, Version 2.0; see LICENSE for the
+full text.
+
+This skill drives Microsoft PowerPoint via AppleScript on macOS.
+Microsoft PowerPoint is a trademark of Microsoft Corporation;
+this skill is not affiliated with or endorsed by Microsoft.

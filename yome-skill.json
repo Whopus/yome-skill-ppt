@@ -46,7 +46,7 @@
     "en": "Read/write .pptx files, control macOS Keynote / PowerPoint"
   },
   "tags": ["productivity", "office", "presentation"],
-  "license": "MIT",
+  "license": "Apache-2.0",
   "author": {
     "name": "Yome Official",
     "github": "Whopus"
