@@ -7,6 +7,39 @@
 // case's t=0 snapshot, and the sandbox handler mutates a working copy as the
 // trace plays out.
 
+export type PptChartType = 'column' | 'bar' | 'line' | 'pie' | 'area' | 'scatter';
+
+export interface PptChartSeries {
+  name: string;
+  values: number[];
+}
+
+export interface PptChart {
+  type: PptChartType;
+  title?: string;
+  /** Category labels (first CSV column, row 2+) */
+  categories: string[];
+  /** One entry per non-category series column */
+  series: PptChartSeries[];
+}
+
+export interface PptTableCell {
+  row: number;
+  col: number;
+  text: string;
+}
+
+export interface PptTable {
+  rows: number;
+  cols: number;
+  cells: PptTableCell[];
+}
+
+export type PptAutoShapeType =
+  | 'rectangle' | 'oval' | 'roundedRect' | 'triangle' | 'rightArrow'
+  | 'star5' | 'pentagon' | 'diamond' | 'hexagon' | 'cloud'
+  | 'lightningBolt' | 'heart';
+
 export interface PptShape {
   /** 1-based shape index within the slide */
   index: number;
@@ -23,6 +56,14 @@ export interface PptShape {
   width?: number;
   height?: number;
   align?: 'left' | 'center' | 'right';
+  /** Present when the shape is a chart. */
+  chart?: PptChart;
+  /** Set for auto shapes (rectangle/oval/star/…). */
+  autoShapeType?: PptAutoShapeType;
+  /** Path to the image file (picture.add). */
+  picturePath?: string;
+  /** Present for shape tables. */
+  table?: PptTable;
 }
 
 export interface PptSlide {
@@ -31,6 +72,8 @@ export interface PptSlide {
   title?: string;
   layout?: number; // 1=title, 2=title+content, 5=title only, 6=blank
   shapes: PptShape[];
+  /** Presenter notes. */
+  notes?: string;
 }
 
 export interface PptFile {

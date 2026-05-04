@@ -67,6 +67,14 @@
       ],
       "uses": ["applescript"]
     },
+    "slide.duplicate": {
+      "script": "slide.duplicate.applescript",
+      "args": [
+        { "name": "slide", "from": "positional|--slide", "required": true },
+        { "name": "to",    "from": "--to",    "default": "" }
+      ],
+      "uses": ["applescript"]
+    },
     "get": {
       "script": "get.applescript",
       "args": [
@@ -129,6 +137,98 @@
       ],
       "uses": ["applescript"]
     },
+    "shape.delete": {
+      "script": "shape.delete.applescript",
+      "args": [
+        { "name": "slide", "from": "positional|--slide", "required": true },
+        { "name": "shape", "from": "--shape", "required": true }
+      ],
+      "uses": ["applescript"]
+    },
+    "shape.move": {
+      "script": "shape.move.applescript",
+      "args": [
+        { "name": "slide", "from": "positional|--slide", "required": true },
+        { "name": "shape", "from": "--shape", "required": true },
+        { "name": "left",  "from": "--left",  "default": "" },
+        { "name": "top",   "from": "--top",   "default": "" }
+      ],
+      "uses": ["applescript"]
+    },
+    "shape.resize": {
+      "script": "shape.resize.applescript",
+      "args": [
+        { "name": "slide",  "from": "positional|--slide", "required": true },
+        { "name": "shape",  "from": "--shape", "required": true },
+        { "name": "width",  "from": "--width",  "default": "" },
+        { "name": "height", "from": "--height", "default": "" }
+      ],
+      "uses": ["applescript"]
+    },
+    "shape.add": {
+      "script": "shape.add.applescript",
+      "args": [
+        { "name": "slide",  "from": "positional|--slide", "required": true },
+        { "name": "type",   "from": "--type",   "required": true },
+        { "name": "left",   "from": "--left",   "default": "100" },
+        { "name": "top",    "from": "--top",    "default": "100" },
+        { "name": "width",  "from": "--width",  "default": "200" },
+        { "name": "height", "from": "--height", "default": "100" },
+        { "name": "text",   "from": "--text",   "default": "" }
+      ],
+      "uses": ["applescript"]
+    },
+    "picture.add": {
+      "script": "picture.add.applescript",
+      "args": [
+        { "name": "slide",  "from": "positional|--slide", "required": true },
+        { "name": "path",   "from": "--path",   "required": true },
+        { "name": "left",   "from": "--left",   "default": "100" },
+        { "name": "top",    "from": "--top",    "default": "100" },
+        { "name": "width",  "from": "--width",  "default": "" },
+        { "name": "height", "from": "--height", "default": "" }
+      ],
+      "uses": ["fs:read", "applescript"]
+    },
+    "notes.set": {
+      "script": "notes.set.applescript",
+      "args": [
+        { "name": "slide", "from": "positional|--slide", "required": true },
+        { "name": "text",  "from": "--text",  "required": true }
+      ],
+      "uses": ["applescript"]
+    },
+    "notes.get": {
+      "script": "notes.get.applescript",
+      "args": [
+        { "name": "slide", "from": "positional|--slide", "required": true }
+      ],
+      "uses": ["applescript"]
+    },
+    "table.add": {
+      "script": "table.add.applescript",
+      "args": [
+        { "name": "slide",  "from": "positional|--slide", "required": true },
+        { "name": "rows",   "from": "--rows",   "required": true },
+        { "name": "cols",   "from": "--cols",   "required": true },
+        { "name": "left",   "from": "--left",   "default": "100" },
+        { "name": "top",    "from": "--top",    "default": "100" },
+        { "name": "width",  "from": "--width",  "default": "600" },
+        { "name": "height", "from": "--height", "default": "200" }
+      ],
+      "uses": ["applescript"]
+    },
+    "table.set": {
+      "script": "table.set.applescript",
+      "args": [
+        { "name": "slide", "from": "positional|--slide", "required": true },
+        { "name": "shape", "from": "--shape", "required": true },
+        { "name": "row",   "from": "--row",   "required": true },
+        { "name": "col",   "from": "--col",   "required": true },
+        { "name": "text",  "from": "--text",  "required": true }
+      ],
+      "uses": ["applescript"]
+    },
     "export": {
       "script": "export.applescript",
       "args": [
@@ -137,6 +237,44 @@
         { "name": "force",  "from": "--force",  "type": "bool", "default": false }
       ],
       "uses": ["fs:write", "applescript"]
+    },
+    "charts": {
+      "script": "charts.applescript",
+      "args": [
+        { "name": "slide", "from": "positional|--slide", "required": true }
+      ],
+      "uses": ["applescript"]
+    },
+    "chart.add": {
+      "script": "chart.add.applescript",
+      "args": [
+        { "name": "slide",  "from": "positional|--slide", "required": true },
+        { "name": "data",   "from": "--data",   "required": true },
+        { "name": "type",   "from": "--type",   "default": "column" },
+        { "name": "title",  "from": "--title",  "default": "" },
+        { "name": "left",   "from": "--left",   "default": "80" },
+        { "name": "top",    "from": "--top",    "default": "120" },
+        { "name": "width",  "from": "--width",  "default": "480" },
+        { "name": "height", "from": "--height", "default": "300" }
+      ],
+      "uses": ["applescript"]
+    },
+    "chart.update": {
+      "script": "chart.update.applescript",
+      "args": [
+        { "name": "slide", "from": "positional|--slide", "required": true },
+        { "name": "shape", "from": "--shape", "required": true },
+        { "name": "data",  "from": "--data",  "required": true }
+      ],
+      "uses": ["applescript"]
+    },
+    "chart.delete": {
+      "script": "chart.delete.applescript",
+      "args": [
+        { "name": "slide", "from": "positional|--slide", "required": true },
+        { "name": "shape", "from": "--shape", "required": true }
+      ],
+      "uses": ["applescript"]
     }
   }
 }

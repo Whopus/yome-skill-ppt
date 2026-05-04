@@ -52,6 +52,21 @@ export function compressGet(content: string): string {
   }).join('\n');
 }
 
+export function compressCharts(content: string): string {
+  // TSV: shape\ttype\ttitle\tseries
+  const lines = content.split('\n').filter(l => l.trim() && /\t/.test(l));
+  const isHeader = (lines[0] || '').startsWith('shape');
+  const rows = isHeader ? lines.slice(1) : lines;
+  if (rows.length === 0) return '[compressed] 无图表';
+  return `[compressed] ${rows.length}个图表:\n` + rows.map(r => {
+    const c = r.split('\t');
+    const head = `${c[0]}. ${c[1] || ''}`;
+    const title = c[2] ? ` ${trunc(c[2], 20)}` : '';
+    const series = c[3] ? ` ×${c[3]}` : '';
+    return head + title + series;
+  }).join('\n');
+}
+
 export function compressRead(content: string): string {
   try {
     const o = JSON.parse(content) as Record<string, unknown>;

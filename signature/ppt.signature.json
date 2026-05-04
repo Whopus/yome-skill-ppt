@@ -1,10 +1,10 @@
 {
   "$schema": "https://yome.work/schema/signature.json",
   "domain": "ppt",
-  "signature_version": "1.0.0",
+  "signature_version": "1.2.0",
   "label": { "zh": "PowerPoint 演示文稿", "en": "PowerPoint Presentation" },
-  "helpSummary": "open, new, save, close, files, slides, slide.add, slide.delete, slide.move, get, read, set, addtext, title, fmt, export",
-  "docs": { "zh": "\n## ppt 命令 — PowerPoint 演示文稿\n\n### 文件管理\nppt open <文件路径>                    打开 .pptx 文件\nppt new [<路径>] [--force]              新建演示文稿（给路径则直接落盘）\nppt save [--path=<另存路径>]           保存（另存为 .pptx）\nppt close [--save=true|false]          关闭\nppt files                              列出所有打开的演示文稿\n\n### 幻灯片管理\nppt slides                             列出所有幻灯片（序号、标题、形状数、布局）\nppt slide.add [--index=<位置>]         添加幻灯片，默认末尾（不要用 --layout，zh-CN 下不稳定）\nppt slide.delete <序号>                删除幻灯片\nppt slide.move <序号> --to=<目标位置>  移动幻灯片到目标位置前\n\n### 读取\nppt get <幻灯片序号>                   获取某张幻灯片的所有形状和文本\nppt read <幻灯片序号> --shape=<形状序号>  读取特定形状的文本和格式\n\n### 写入\nppt set <幻灯片序号> --shape=<形状序号> --text=<内容>   设置形状文本\nppt addtext <幻灯片序号> --text=<内容> [--left=100] [--top=200] [--width=400] [--height=50]  添加文本框\nppt title <幻灯片序号> --text=<标题>   设置幻灯片标题（shape 1）\n\n### 格式化\nppt fmt <幻灯片序号> --shape=<形状序号> [--bold] [--italic] [--size=<字号>] [--color=<颜色>] [--bg=<背景色>] [--align=left|center|right]\n  颜色/背景: 名称(black/red/blue/navy/darkblue等) 或 RGB(0,51,102) 或 hex(#003366)\n  所有参数可任意组合，单个属性失败不影响其他属性\n\n文本换行: 用 \\n 表示，如 --text=\"第一行\\n第二行\"\n路径: ~ 为主目录，相对路径基于 ~/Desktop\n除 open/new/files 外，所有操作命令作用于当前激活的演示文稿（需先 open 或 new）\n新建文稿默认已含 1 张空白幻灯片（含 2 个占位符: shape 1 为标题, shape 2 为副标题），slide.add 是从第 2 张开始追加\n", "en": "\n## ppt command — PowerPoint Presentation\n\n### File Management\nppt open <file_path>                   Open .pptx file\nppt new [<path>] [--force]             Create new presentation (with path: create and save)\nppt save [--path=<save_as_path>]       Save (save as .pptx)\nppt close [--save=true|false]          Close\nppt files                              List all open presentations\n\n### Slide Management\nppt slides                             List all slides (index, title, shape count, layout)\nppt slide.add [--index=<position>]     Add slide, default at end (do not use --layout, unstable on zh-CN)\nppt slide.delete <index>               Delete slide\nppt slide.move <index> --to=<target>   Move slide before target position\n\n### Read\nppt get <slide_index>                  Get all shapes and text of a slide\nppt read <slide_index> --shape=<shape_index>  Read text and format of a specific shape\n\n### Write\nppt set <slide_index> --shape=<shape_index> --text=<content>   Set shape text\nppt addtext <slide_index> --text=<content> [--left=100] [--top=200] [--width=400] [--height=50]  Add text box\nppt title <slide_index> --text=<title> Set slide title (shape 1)\n\n### Format\nppt fmt <slide_index> --shape=<shape_index> [--bold] [--italic] [--size=<font_size>] [--color=<color>] [--bg=<bg_color>] [--align=left|center|right]\n  Colors/bg: name (black/red/blue/navy/darkblue etc.) or RGB(0,51,102) or hex(#003366)\n  All params combine freely; a single attribute failing does not abort others\n\nNewline in text: use \\n, e.g. --text=\"Line 1\\nLine 2\"\nPath: ~ is home directory, relative paths are based on ~/Desktop\nExcept open/new/files, all commands operate on the currently active presentation (open or new first)\nNew presentation already contains 1 blank slide (2 placeholders: shape 1=title, shape 2=subtitle); slide.add appends starting from slide 2\n" },
+  "helpSummary": "open, new, save, close, files, slides, slide.add, slide.delete, slide.move, slide.duplicate, get, read, set, addtext, title, fmt, export, shape.delete, shape.move, shape.resize, shape.add, picture.add, notes.set, notes.get, table.add, table.set, charts, chart.add, chart.update, chart.delete",
+  "docs": { "zh": "\n## ppt 命令 — PowerPoint 演示文稿\n\n### 文件管理\nppt open <文件路径>                    打开 .pptx 文件\nppt new [<路径>] [--force]              新建演示文稿（给路径则直接落盘）\nppt save [--path=<另存路径>]           保存（另存为 .pptx）\nppt close [--save=true|false]          关闭\nppt files                              列出所有打开的演示文稿\n\n### 幻灯片管理\nppt slides                             列出所有幻灯片（序号、标题、形状数、布局）\nppt slide.add [--index=<位置>]         添加幻灯片，默认末尾（不要用 --layout，zh-CN 下不稳定）\nppt slide.delete <序号>                删除幻灯片\nppt slide.move <序号> --to=<目标位置>  移动幻灯片到目标位置前\nppt slide.duplicate <序号> [--to=<目标位置>]   复制幻灯片到目标位置前（省略 --to 则插在源后）\n\n### 读取\nppt get <幻灯片序号>                   获取某张幻灯片的所有形状和文本\nppt read <幻灯片序号> --shape=<形状序号>  读取特定形状的文本和格式\nppt notes.get <幻灯片序号>             读取演讲者备注\n\n### 写入\nppt set <幻灯片序号> --shape=<形状序号> --text=<内容>   设置形状文本\nppt addtext <幻灯片序号> --text=<内容> [--left=100] [--top=200] [--width=400] [--height=50]  添加文本框\nppt title <幻灯片序号> --text=<标题>   设置幻灯片标题（shape 1）\nppt notes.set <幻灯片序号> --text=<备注内容>   设置演讲者备注\n\n### 形状操作\nppt shape.delete <幻灯片序号> --shape=<形状序号>                     删除形状\nppt shape.move <幻灯片序号> --shape=<形状序号> --left=<X> --top=<Y>  移动形状\nppt shape.resize <幻灯片序号> --shape=<形状序号> --width=<W> --height=<H>  调整尺寸\nppt shape.add <幻灯片序号> --type=<形状类型> [--left=100] [--top=100] [--width=200] [--height=100] [--text=<文字>]\n  形状类型：rectangle|oval|roundedRect|triangle|rightArrow|star5|pentagon|diamond|hexagon|cloud|lightningBolt|heart\nppt picture.add <幻灯片序号> --path=<图片路径> [--left=100] [--top=100] [--width=<可选>] [--height=<可选>]\n  插入图片（支持 png/jpg/gif 等）。省略 width/height 则用原始尺寸\n\n### 表格\nppt table.add <幻灯片序号> --rows=<行数> --cols=<列数> [--left=100] [--top=100] [--width=600] [--height=200]\nppt table.set <幻灯片序号> --shape=<表格形状序号> --row=<行> --col=<列> --text=<单元格内容>\n\n### 格式化\nppt fmt <幻灯片序号> --shape=<形状序号> [--bold] [--italic] [--size=<字号>] [--color=<颜色>] [--bg=<背景色>] [--align=left|center|right]\n  颜色/背景: 名称(black/red/blue/navy/darkblue等) 或 RGB(0,51,102) 或 hex(#003366)\n  所有参数可任意组合，单个属性失败不影响其他属性\n\n### 图表（由 python-pptx 引擎执行，需系统已装 python3 + python-pptx：pip3 install python-pptx）\nppt charts <幻灯片序号>                                      列出该幻灯片上所有图表（shape 序号、类型、标题）\nppt chart.add <幻灯片序号> --data=<CSV> [--type=column|bar|line|pie|area|scatter] [--title=<标题>] [--left=80] [--top=120] [--width=480] [--height=300]\n  --data 是 CSV：首行为表头（第一列留空或写分类名，后续列为系列名），其余行为“分类,值1[,值2...]”\n  例：--data=\"Quarter,Sales,Cost\\nQ1,120,80\\nQ2,150,90\"\nppt chart.update <幻灯片序号> --shape=<形状序号> --data=<CSV>   用新 CSV 数据替换已有图表（类型/位置/标题保留）\nppt chart.delete <幻灯片序号> --shape=<形状序号>                删除图表\n\n文本换行: 用 \\n 表示，如 --text=\"第一行\\n第二行\"\n路径: ~ 为主目录，相对路径基于 ~/Desktop\n除 open/new/files 外，所有操作命令作用于当前激活的演示文稿（需先 open 或 new）\n新建文稿默认已含 1 张空白幻灯片（含 2 个占位符: shape 1 为标题, shape 2 为副标题），slide.add 是从第 2 张开始追加\n图表命令会先保存并关闭 PowerPoint，由 python-pptx 直接修改 .pptx 文件，然后重新打开——此过程中 PowerPoint 会自动切换\n", "en": "\n## ppt command — PowerPoint Presentation\n\n### File Management\nppt open <file_path>                   Open .pptx file\nppt new [<path>] [--force]             Create new presentation (with path: create and save)\nppt save [--path=<save_as_path>]       Save (save as .pptx)\nppt close [--save=true|false]          Close\nppt files                              List all open presentations\n\n### Slide Management\nppt slides                             List all slides (index, title, shape count, layout)\nppt slide.add [--index=<position>]     Add slide, default at end (do not use --layout, unstable on zh-CN)\nppt slide.delete <index>               Delete slide\nppt slide.move <index> --to=<target>   Move slide before target position\nppt slide.duplicate <index> [--to=<target>]   Duplicate slide (omit --to to insert right after source)\n\n### Read\nppt get <slide_index>                  Get all shapes and text of a slide\nppt read <slide_index> --shape=<shape_index>  Read text and format of a specific shape\nppt notes.get <slide_index>            Read presenter notes\n\n### Write\nppt set <slide_index> --shape=<shape_index> --text=<content>   Set shape text\nppt addtext <slide_index> --text=<content> [--left=100] [--top=200] [--width=400] [--height=50]  Add text box\nppt title <slide_index> --text=<title> Set slide title (shape 1)\nppt notes.set <slide_index> --text=<notes_text>   Set presenter notes\n\n### Shape Ops\nppt shape.delete <slide_index> --shape=<shape_index>                        Delete a shape\nppt shape.move   <slide_index> --shape=<shape_index> --left=<X> --top=<Y>   Move shape\nppt shape.resize <slide_index> --shape=<shape_index> --width=<W> --height=<H>  Resize shape\nppt shape.add    <slide_index> --type=<shape_type> [--left=100] [--top=100] [--width=200] [--height=100] [--text=<text>]\n  shape_type: rectangle|oval|roundedRect|triangle|rightArrow|star5|pentagon|diamond|hexagon|cloud|lightningBolt|heart\nppt picture.add  <slide_index> --path=<image_path> [--left=100] [--top=100] [--width=<optional>] [--height=<optional>]\n  Insert a picture (png/jpg/gif etc). Omit width/height to keep native size.\n\n### Tables\nppt table.add <slide_index> --rows=<R> --cols=<C> [--left=100] [--top=100] [--width=600] [--height=200]\nppt table.set <slide_index> --shape=<table_shape_index> --row=<r> --col=<c> --text=<cell_text>\n\n### Format\nppt fmt <slide_index> --shape=<shape_index> [--bold] [--italic] [--size=<font_size>] [--color=<color>] [--bg=<bg_color>] [--align=left|center|right]\n  Colors/bg: name (black/red/blue/navy/darkblue etc.) or RGB(0,51,102) or hex(#003366)\n  All params combine freely; a single attribute failing does not abort others\n\n### Charts (python-pptx engine; requires system python3 + python-pptx: pip3 install python-pptx)\nppt charts <slide_index>                                       List all charts on the slide (shape index, type, title)\nppt chart.add <slide_index> --data=<CSV> [--type=column|bar|line|pie|area|scatter] [--title=<title>] [--left=80] [--top=120] [--width=480] [--height=300]\n  --data is CSV: first row is header (first cell=category label/empty, rest=series names);\n  following rows are \"category,value1[,value2...]\".\n  Example: --data=\"Quarter,Sales,Cost\\nQ1,120,80\\nQ2,150,90\"\nppt chart.update <slide_index> --shape=<shape_index> --data=<CSV>   Replace existing chart's data (type/position/title preserved)\nppt chart.delete <slide_index> --shape=<shape_index>                 Delete a chart shape\n\nNewline in text: use \\n, e.g. --text=\"Line 1\\nLine 2\"\nPath: ~ is home directory, relative paths are based on ~/Desktop\nExcept open/new/files, all commands operate on the currently active presentation (open or new first)\nNew presentation already contains 1 blank slide (2 placeholders: shape 1=title, shape 2=subtitle); slide.add appends starting from slide 2\nChart ops save+close the PowerPoint file, edit the .pptx via python-pptx, then reopen — PowerPoint will briefly toggle during this\n" },
   "commands": {
     "open": {
       "usage": { "zh": "ppt open <文件路径>", "en": "ppt open <file_path>" },
@@ -74,6 +74,15 @@
       "params": { "to": { "required": true, "description": { "zh": "目标位置（移动到该序号前）", "en": "Target position (move before this index)" } } },
       "since": "1.0.0"
     },
+    "slide.duplicate": {
+      "usage": { "zh": "ppt slide.duplicate <序号> [--to=<目标位置>]", "en": "ppt slide.duplicate <index> [--to=<target_position>]" },
+      "description": { "zh": "复制指定幻灯片；--to 省略时插在源幻灯片之后", "en": "Duplicate a slide; when --to omitted, insert right after source" },
+      "positional": "index",
+      "params": {
+        "to": { "description": { "zh": "插入位置（移动到该序号前）。省略则紧跟源幻灯片", "en": "Insert before this index. Omit to insert right after source" } }
+      },
+      "since": "1.2.0"
+    },
     "get": {
       "usage": { "zh": "ppt get <幻灯片序号>", "en": "ppt get <slide_index>" },
       "description": { "zh": "获取某张幻灯片的所有形状和文本", "en": "Get all shapes and text of a slide" },
@@ -125,6 +134,101 @@
       "params": { "text": { "required": true, "description": { "zh": "标题文本", "en": "Title text" } } },
       "since": "1.0.0"
     },
+    "shape.delete": {
+      "usage": { "zh": "ppt shape.delete <幻灯片序号> --shape=<形状序号>", "en": "ppt shape.delete <slide_index> --shape=<shape_index>" },
+      "description": { "zh": "删除指定形状", "en": "Delete a shape" },
+      "positional": "slideIndex",
+      "params": { "shape": { "required": true, "description": { "zh": "形状序号", "en": "Shape index" } } },
+      "since": "1.2.0"
+    },
+    "shape.move": {
+      "usage": { "zh": "ppt shape.move <幻灯片序号> --shape=<形状序号> --left=<X> --top=<Y>", "en": "ppt shape.move <slide_index> --shape=<shape_index> --left=<X> --top=<Y>" },
+      "description": { "zh": "移动形状到新位置（pt）", "en": "Move shape to new position (pt)" },
+      "positional": "slideIndex",
+      "params": {
+        "shape": { "required": true, "description": { "zh": "形状序号", "en": "Shape index" } },
+        "left":  { "description": { "zh": "左边距 pt（省略则保持不变）", "en": "Left in pt (omit to keep)" } },
+        "top":   { "description": { "zh": "上边距 pt（省略则保持不变）", "en": "Top in pt (omit to keep)" } }
+      },
+      "since": "1.2.0"
+    },
+    "shape.resize": {
+      "usage": { "zh": "ppt shape.resize <幻灯片序号> --shape=<形状序号> --width=<W> --height=<H>", "en": "ppt shape.resize <slide_index> --shape=<shape_index> --width=<W> --height=<H>" },
+      "description": { "zh": "调整形状尺寸（pt）", "en": "Resize shape (pt)" },
+      "positional": "slideIndex",
+      "params": {
+        "shape":  { "required": true, "description": { "zh": "形状序号", "en": "Shape index" } },
+        "width":  { "description": { "zh": "宽度 pt（省略则保持不变）", "en": "Width in pt (omit to keep)" } },
+        "height": { "description": { "zh": "高度 pt（省略则保持不变）", "en": "Height in pt (omit to keep)" } }
+      },
+      "since": "1.2.0"
+    },
+    "shape.add": {
+      "usage": { "zh": "ppt shape.add <幻灯片序号> --type=<形状类型> [--left=100] [--top=100] [--width=200] [--height=100] [--text=<文字>]", "en": "ppt shape.add <slide_index> --type=<shape_type> [--left=100] [--top=100] [--width=200] [--height=100] [--text=<text>]" },
+      "description": { "zh": "插入自选图形（矩形/椭圆/箭头/星形等）", "en": "Insert an auto shape (rectangle/oval/arrow/star/etc.)" },
+      "positional": "slideIndex",
+      "params": {
+        "type":   { "required": true, "description": { "zh": "形状类型", "en": "Shape type" }, "values": ["rectangle", "oval", "roundedRect", "triangle", "rightArrow", "star5", "pentagon", "diamond", "hexagon", "cloud", "lightningBolt", "heart"] },
+        "left":   { "description": { "zh": "左边距 pt（默认 100）", "en": "Left in pt (default 100)" } },
+        "top":    { "description": { "zh": "上边距 pt（默认 100）", "en": "Top in pt (default 100)" } },
+        "width":  { "description": { "zh": "宽度 pt（默认 200）", "en": "Width in pt (default 200)" } },
+        "height": { "description": { "zh": "高度 pt（默认 100）", "en": "Height in pt (default 100)" } },
+        "text":   { "description": { "zh": "形状内文字（可选）", "en": "Text inside shape (optional)" } }
+      },
+      "since": "1.2.0"
+    },
+    "picture.add": {
+      "usage": { "zh": "ppt picture.add <幻灯片序号> --path=<图片路径> [--left=100] [--top=100] [--width=<可选>] [--height=<可选>]", "en": "ppt picture.add <slide_index> --path=<image_path> [--left=100] [--top=100] [--width=<optional>] [--height=<optional>]" },
+      "description": { "zh": "在幻灯片插入图片（png/jpg/gif 等）", "en": "Insert an image into the slide (png/jpg/gif etc.)" },
+      "positional": "slideIndex",
+      "params": {
+        "path":   { "required": true, "description": { "zh": "图片路径（~ 展开；相对路径基于 ~/Desktop）", "en": "Image path (~ expanded; relative = ~/Desktop)" } },
+        "left":   { "description": { "zh": "左边距 pt（默认 100）", "en": "Left in pt (default 100)" } },
+        "top":    { "description": { "zh": "上边距 pt（默认 100）", "en": "Top in pt (default 100)" } },
+        "width":  { "description": { "zh": "宽度 pt（省略则用原始尺寸）", "en": "Width in pt (omit to use native)" } },
+        "height": { "description": { "zh": "高度 pt（省略则用原始尺寸）", "en": "Height in pt (omit to use native)" } }
+      },
+      "since": "1.2.0"
+    },
+    "notes.set": {
+      "usage": { "zh": "ppt notes.set <幻灯片序号> --text=<备注内容>", "en": "ppt notes.set <slide_index> --text=<notes_text>" },
+      "description": { "zh": "设置演讲者备注（presenter notes）", "en": "Set presenter notes" },
+      "positional": "slideIndex",
+      "params": { "text": { "required": true, "description": { "zh": "备注内容", "en": "Notes content" } } },
+      "since": "1.2.0"
+    },
+    "notes.get": {
+      "usage": { "zh": "ppt notes.get <幻灯片序号>", "en": "ppt notes.get <slide_index>" },
+      "description": { "zh": "读取演讲者备注", "en": "Get presenter notes" },
+      "positional": "slideIndex",
+      "since": "1.2.0"
+    },
+    "table.add": {
+      "usage": { "zh": "ppt table.add <幻灯片序号> --rows=<行数> --cols=<列数> [--left=100] [--top=100] [--width=600] [--height=200]", "en": "ppt table.add <slide_index> --rows=<R> --cols=<C> [--left=100] [--top=100] [--width=600] [--height=200]" },
+      "description": { "zh": "插入表格（返回 shape 序号）", "en": "Insert a table (returns shape index)" },
+      "positional": "slideIndex",
+      "params": {
+        "rows":   { "required": true, "description": { "zh": "行数", "en": "Number of rows" } },
+        "cols":   { "required": true, "description": { "zh": "列数", "en": "Number of columns" } },
+        "left":   { "description": { "zh": "左边距 pt（默认 100）", "en": "Left in pt (default 100)" } },
+        "top":    { "description": { "zh": "上边距 pt（默认 100）", "en": "Top in pt (default 100)" } },
+        "width":  { "description": { "zh": "宽度 pt（默认 600）", "en": "Width in pt (default 600)" } },
+        "height": { "description": { "zh": "高度 pt（默认 200）", "en": "Height in pt (default 200)" } }
+      },
+      "since": "1.2.0"
+    },
+    "table.set": {
+      "usage": { "zh": "ppt table.set <幻灯片序号> --shape=<形状序号> --row=<行> --col=<列> --text=<内容>", "en": "ppt table.set <slide_index> --shape=<shape_index> --row=<r> --col=<c> --text=<content>" },
+      "description": { "zh": "设置表格某个单元格的文字（行列为 1-based）", "en": "Set a table cell's text (row/col 1-based)" },
+      "positional": "slideIndex",
+      "params": {
+        "shape": { "required": true, "description": { "zh": "表格形状序号", "en": "Table shape index" } },
+        "row":   { "required": true, "description": { "zh": "行（1-based）", "en": "Row (1-based)" } },
+        "col":   { "required": true, "description": { "zh": "列（1-based）", "en": "Column (1-based)" } },
+        "text":  { "required": true, "description": { "zh": "单元格文本", "en": "Cell text" } }
+      },
+      "since": "1.2.0"
+    },
     "export": {
       "usage": { "zh": "ppt export --format=<格式> --path=<输出路径> [--force]", "en": "ppt export --format=<format> --path=<output_path> [--force]" },
       "description": { "zh": "导出当前演示文稿", "en": "Export current presentation" },
@@ -151,8 +255,49 @@
         "align": { "description": { "zh": "段落水平对齐", "en": "Paragraph horizontal alignment" }, "values": ["left", "center", "right"] }
       },
       "since": "1.0.0"
+    },
+    "charts": {
+      "usage": { "zh": "ppt charts <幻灯片序号>", "en": "ppt charts <slide_index>" },
+      "description": { "zh": "列出该幻灯片上所有图表（形状序号、类型、标题、系列数）", "en": "List all charts on the slide (shape index, type, title, series count)" },
+      "positional": "slideIndex",
+      "compress": { "kind": "custom", "module": "Server/agent/compress/ppt.ts", "export": "compressCharts" },
+      "since": "1.1.0"
+    },
+    "chart.add": {
+      "usage": { "zh": "ppt chart.add <幻灯片序号> --data=<CSV> [--type=column|bar|line|pie|area|scatter] [--title=<标题>] [--left=80] [--top=120] [--width=480] [--height=300]", "en": "ppt chart.add <slide_index> --data=<CSV> [--type=column|bar|line|pie|area|scatter] [--title=<title>] [--left=80] [--top=120] [--width=480] [--height=300]" },
+      "description": { "zh": "在幻灯片上新增图表，返回 shape 序号", "en": "Add a new chart to the slide, returns shape index" },
+      "positional": "slideIndex",
+      "params": {
+        "data": { "required": true, "description": { "zh": "CSV 数据：首行表头（第一列为分类名/留空，其余为系列名），之后每行 \"分类,值1[,值2]\"。\\n=换行", "en": "CSV data: first row is header (first cell=category label/empty, rest=series names); following rows \"category,value1[,value2]\". Use \\n for newline" } },
+        "type": { "description": { "zh": "图表类型", "en": "Chart type" }, "values": ["column", "bar", "line", "pie", "area", "scatter"] },
+        "title": { "description": { "zh": "图表标题", "en": "Chart title" } },
+        "left": { "description": { "zh": "左边距 pt（默认 80）", "en": "Left in pt (default 80)" } },
+        "top": { "description": { "zh": "上边距 pt（默认 120）", "en": "Top in pt (default 120)" } },
+        "width": { "description": { "zh": "宽度 pt（默认 480）", "en": "Width in pt (default 480)" } },
+        "height": { "description": { "zh": "高度 pt（默认 300）", "en": "Height in pt (default 300)" } }
+      },
+      "since": "1.1.0"
+    },
+    "chart.update": {
+      "usage": { "zh": "ppt chart.update <幻灯片序号> --shape=<形状序号> --data=<CSV>", "en": "ppt chart.update <slide_index> --shape=<shape_index> --data=<CSV>" },
+      "description": { "zh": "用新 CSV 数据替换已有图表（类型/位置/标题保留；实现为替换策略）", "en": "Replace existing chart's data with new CSV (type/position/title preserved; implemented as replace)" },
+      "positional": "slideIndex",
+      "params": {
+        "shape": { "required": true, "description": { "zh": "形状序号", "en": "Shape index" } },
+        "data": { "required": true, "description": { "zh": "新 CSV 数据（格式同 chart.add）", "en": "New CSV data (same format as chart.add)" } }
+      },
+      "since": "1.1.0"
+    },
+    "chart.delete": {
+      "usage": { "zh": "ppt chart.delete <幻灯片序号> --shape=<形状序号>", "en": "ppt chart.delete <slide_index> --shape=<shape_index>" },
+      "description": { "zh": "删除图表", "en": "Delete a chart shape" },
+      "positional": "slideIndex",
+      "params": {
+        "shape": { "required": true, "description": { "zh": "形状序号", "en": "Shape index" } }
+      },
+      "since": "1.1.0"
     }
   },
-  "compactDocs": { "zh": "ppt — PowerPoint: open/new [<path>] [--force]/save/close/files | slides | slide.add [--index] | slide.delete/slide.move | get/read <idx> [--shape] | set <idx> --shape --text | addtext --text [--left --top --width --height] | title <idx> --text | fmt --shape [--bold --italic --size --color --bg --align]  Color/bg: name/RGB(0,51,102)/hex(#003366). \\n=newline. No --layout on zh-CN. shape1=title, shape2=subtitle", "en": "ppt — PowerPoint: open/new [<path>] [--force]/save/close/files | slides | slide.add [--index] | slide.delete/slide.move | get/read <idx> [--shape] | set <idx> --shape --text | addtext --text [--left --top --width --height] | title <idx> --text | fmt --shape [--bold --italic --size --color --bg --align]  Color/bg: name/RGB(0,51,102)/hex(#003366). \\n=newline. No --layout on zh-CN. shape1=title, shape2=subtitle" },
+  "compactDocs": { "zh": "ppt — PowerPoint: open/new [<path>] [--force]/save/close/files | slides | slide.add [--index]/slide.delete/slide.move/slide.duplicate [--to] | get/read <idx> [--shape] | set <idx> --shape --text | addtext --text [--left --top --width --height] | title <idx> --text | notes.set/notes.get --text | shape.delete/shape.move/shape.resize --shape [--left --top --width --height] | shape.add --type=rectangle|oval|roundedRect|triangle|rightArrow|star5|pentagon|diamond|hexagon|cloud|lightningBolt|heart [--left --top --width --height --text] | picture.add --path [--left --top --width --height] | table.add --rows --cols [--left --top --width --height] | table.set --shape --row --col --text | fmt --shape [--bold --italic --size --color --bg --align] | charts <idx> | chart.add --data=<CSV> [--type --title --left --top --width --height] | chart.update --shape --data | chart.delete --shape  Color/bg: name/RGB(0,51,102)/hex(#003366). CSV: 首行表头,之后 分类,值1[,值2]. \\n=newline. No --layout on zh-CN. shape1=title, shape2=subtitle. 图表需 python-pptx", "en": "ppt — PowerPoint: open/new [<path>] [--force]/save/close/files | slides | slide.add [--index]/slide.delete/slide.move/slide.duplicate [--to] | get/read <idx> [--shape] | set <idx> --shape --text | addtext --text [--left --top --width --height] | title <idx> --text | notes.set/notes.get --text | shape.delete/shape.move/shape.resize --shape [--left --top --width --height] | shape.add --type=rectangle|oval|roundedRect|triangle|rightArrow|star5|pentagon|diamond|hexagon|cloud|lightningBolt|heart [--left --top --width --height --text] | picture.add --path [--left --top --width --height] | table.add --rows --cols [--left --top --width --height] | table.set --shape --row --col --text | fmt --shape [--bold --italic --size --color --bg --align] | charts <idx> | chart.add --data=<CSV> [--type --title --left --top --width --height] | chart.update --shape --data | chart.delete --shape  Color/bg: name/RGB(0,51,102)/hex(#003366). CSV: header row then category,v1[,v2]. \\n=newline. No --layout on zh-CN. shape1=title, shape2=subtitle. Charts need python-pptx" },
   "batchable": true
 }

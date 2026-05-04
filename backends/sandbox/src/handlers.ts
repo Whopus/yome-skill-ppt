@@ -15,10 +15,74 @@ import {
   getActiveFile,
   newBlankFile,
   setActiveFile,
+  type PptAutoShapeType,
+  type PptChart,
+  type PptChartType,
   type PptFile,
+  type PptShape,
   type PptSlide,
+  type PptTable,
+  type PptTableCell,
   type PptWorldState,
 } from './state';
+
+const VALID_AUTO_SHAPE_TYPES: ReadonlyArray<PptAutoShapeType> = [
+  'rectangle', 'oval', 'roundedRect', 'triangle', 'rightArrow',
+  'star5', 'pentagon', 'diamond', 'hexagon', 'cloud', 'lightningBolt', 'heart',
+];
+
+function normalizeAutoShapeType(raw: string | undefined): PptAutoShapeType {
+  const t = (raw ?? 'rectangle').toLowerCase();
+  const canonicalMap: Record<string, PptAutoShapeType> = {
+    rectangle: 'rectangle',
+    oval: 'oval',
+    roundedrect: 'roundedRect',
+    roundedrectangle: 'roundedRect',
+    triangle: 'triangle',
+    rightarrow: 'rightArrow',
+    star5: 'star5',
+    star: 'star5',
+    pentagon: 'pentagon',
+    diamond: 'diamond',
+    hexagon: 'hexagon',
+    cloud: 'cloud',
+    lightningbolt: 'lightningBolt',
+    heart: 'heart',
+  };
+  return canonicalMap[t] ?? 'rectangle';
+}
+
+const VALID_CHART_TYPES: ReadonlyArray<PptChartType> = ['column', 'bar', 'line', 'pie', 'area', 'scatter'];
+
+function normalizeChartType(raw: string | undefined): PptChartType {
+  const t = (raw ?? 'column').toLowerCase();
+  return (VALID_CHART_TYPES as readonly string[]).includes(t) ? (t as PptChartType) : 'column';
+}
+
+/** Parse CSV; returns null if header row + at least 1 data row not present. */
+function parseCsvChartData(raw: string): PptChart | null {
+  const text = raw
+    .replace(/\\r\\n/g, '\n')
+    .replace(/\\n/g, '\n')
+    .replace(/\r\n/g, '\n')
+    .replace(/\r/g, '\n')
+    .trim();
+  if (!text) return null;
+  const lines = text.split('\n').filter(l => l.length > 0);
+  if (lines.length < 2) return null;
+  const header = lines[0].split(',').map(s => s.trim());
+  const dataRows = lines.slice(1).map(l => l.split(',').map(s => s.trim()));
+  const seriesNames = header.slice(1);
+  const categories = dataRows.map(r => r[0] ?? '');
+  const series = seriesNames.map((name, si) => ({
+    name,
+    values: dataRows.map(r => {
+      const v = Number.parseFloat(r[si + 1] ?? '0');
+      return Number.isFinite(v) ? v : 0;
+    }),
+  }));
+  return { type: 'column', categories, series };
+}
 
 export interface ParsedCommand {
   domain: string;
@@ -193,6 +257,31 @@ export function handlePpt(world: PptCarrier, cmd: ParsedCommand): HandlerResult 
       return ok(JSON.stringify({ ok: true, from, to: moved.index }));
     }
 
+    case 'slide.duplicate': {
+      const file = getActiveFile(state);
+      if (!file) return err('ppt slide.duplicate: no active presentation');
+      const from = parseIntOrNull(cmd.positionals[0]);
+      if (!from || from < 1 || from > file.slides.length) {
+        return err(`ppt slide.duplicate: invalid <index> ${from ?? ''}`);
+      }
+      const src = file.slides[from - 1];
+      const clone: PptSlide = {
+        index: 0,
+        title: src.title,
+        layout: src.layout,
+        notes: src.notes,
+        shapes: src.shapes.map(s => ({ ...s, chart: s.chart ? { ...s.chart, series: s.chart.series.map(x => ({ ...x, values: [...x.values] })) } : undefined })),
+      };
+      const toTarget = parseIntOrNull(cmd.flags.to);
+      const insertAt = toTarget && toTarget >= 1
+        ? Math.min(file.slides.length, toTarget - 1)
+        : from;
+      file.slides.splice(insertAt, 0, clone);
+      reindexSlides(file);
+      file.dirty = true;
+      return ok(JSON.stringify({ ok: true, duplicated: from, at: clone.index }));
+    }
+
     case 'get': {
       const file = getActiveFile(state);
       if (!file) return err('ppt get: no active presentation');
@@ -315,6 +404,253 @@ export function handlePpt(world: PptCarrier, cmd: ParsedCommand): HandlerResult 
       const path = cmd.flags.path;
       if (!format || !path) return err('ppt export: need --format and --path');
       return ok(JSON.stringify({ ok: true, exported: path, format, slides: file.slides.length }));
+    }
+
+    case 'shape.delete': {
+      const file = getActiveFile(state);
+      if (!file) return err('ppt shape.delete: no active presentation');
+      const slideIdx = parseIntOrNull(cmd.positionals[0]);
+      const shapeIdx = parseIntOrNull(cmd.flags.shape);
+      if (!slideIdx || !shapeIdx) return err('ppt shape.delete: need <slide_index> --shape');
+      const slide = file.slides[slideIdx - 1];
+      if (!slide) return err(`ppt shape.delete: slide ${slideIdx} not found`);
+      const shape = slide.shapes[shapeIdx - 1];
+      if (!shape) return err(`ppt shape.delete: shape ${slideIdx}/${shapeIdx} not found`);
+      slide.shapes.splice(shapeIdx - 1, 1);
+      slide.shapes.forEach((s, i) => { s.index = i + 1; });
+      file.dirty = true;
+      return ok(JSON.stringify({ ok: true, slide: slideIdx, shape: shapeIdx }));
+    }
+
+    case 'shape.move': {
+      const file = getActiveFile(state);
+      if (!file) return err('ppt shape.move: no active presentation');
+      const slideIdx = parseIntOrNull(cmd.positionals[0]);
+      const shapeIdx = parseIntOrNull(cmd.flags.shape);
+      if (!slideIdx || !shapeIdx) return err('ppt shape.move: need <slide_index> --shape');
+      const slide = file.slides[slideIdx - 1];
+      const shape = slide?.shapes[shapeIdx - 1];
+      if (!shape) return err(`ppt shape.move: shape ${slideIdx}/${shapeIdx} not found`);
+      const left = parseIntOrNull(cmd.flags.left);
+      const top = parseIntOrNull(cmd.flags.top);
+      if (left === null && top === null) return err('ppt shape.move: need --left and/or --top');
+      if (left !== null) shape.left = left;
+      if (top !== null) shape.top = top;
+      file.dirty = true;
+      return ok(JSON.stringify({ ok: true, slide: slideIdx, shape: shapeIdx, left: shape.left, top: shape.top }));
+    }
+
+    case 'shape.resize': {
+      const file = getActiveFile(state);
+      if (!file) return err('ppt shape.resize: no active presentation');
+      const slideIdx = parseIntOrNull(cmd.positionals[0]);
+      const shapeIdx = parseIntOrNull(cmd.flags.shape);
+      if (!slideIdx || !shapeIdx) return err('ppt shape.resize: need <slide_index> --shape');
+      const slide = file.slides[slideIdx - 1];
+      const shape = slide?.shapes[shapeIdx - 1];
+      if (!shape) return err(`ppt shape.resize: shape ${slideIdx}/${shapeIdx} not found`);
+      const w = parseIntOrNull(cmd.flags.width);
+      const h = parseIntOrNull(cmd.flags.height);
+      if (w === null && h === null) return err('ppt shape.resize: need --width and/or --height');
+      if (w !== null) shape.width = w;
+      if (h !== null) shape.height = h;
+      file.dirty = true;
+      return ok(JSON.stringify({ ok: true, slide: slideIdx, shape: shapeIdx, width: shape.width, height: shape.height }));
+    }
+
+    case 'shape.add': {
+      const file = getActiveFile(state);
+      if (!file) return err('ppt shape.add: no active presentation');
+      const slideIdx = parseIntOrNull(cmd.positionals[0]);
+      const rawType = cmd.flags.type;
+      if (!slideIdx || !rawType) return err('ppt shape.add: need <slide_index> --type');
+      const slide = file.slides[slideIdx - 1];
+      if (!slide) return err(`ppt shape.add: slide ${slideIdx} not found`);
+      const autoShapeType = normalizeAutoShapeType(rawType);
+      const shape: PptShape = {
+        index: nextShapeIndex(slide),
+        name: `AutoShape:${autoShapeType}`,
+        autoShapeType,
+        left: parseIntOrNull(cmd.flags.left) ?? 100,
+        top: parseIntOrNull(cmd.flags.top) ?? 100,
+        width: parseIntOrNull(cmd.flags.width) ?? 200,
+        height: parseIntOrNull(cmd.flags.height) ?? 100,
+      };
+      if (cmd.flags.text) shape.text = cmd.flags.text;
+      slide.shapes.push(shape);
+      file.dirty = true;
+      return ok(JSON.stringify({ ok: true, slide: slideIdx, shape: shape.index, type: autoShapeType }));
+    }
+
+    case 'picture.add': {
+      const file = getActiveFile(state);
+      if (!file) return err('ppt picture.add: no active presentation');
+      const slideIdx = parseIntOrNull(cmd.positionals[0]);
+      const path = cmd.flags.path;
+      if (!slideIdx || !path) return err('ppt picture.add: need <slide_index> --path');
+      const slide = file.slides[slideIdx - 1];
+      if (!slide) return err(`ppt picture.add: slide ${slideIdx} not found`);
+      const shape: PptShape = {
+        index: nextShapeIndex(slide),
+        name: 'Picture',
+        picturePath: path,
+        left: parseIntOrNull(cmd.flags.left) ?? 100,
+        top: parseIntOrNull(cmd.flags.top) ?? 100,
+        width: parseIntOrNull(cmd.flags.width) ?? undefined,
+        height: parseIntOrNull(cmd.flags.height) ?? undefined,
+      };
+      slide.shapes.push(shape);
+      file.dirty = true;
+      return ok(JSON.stringify({ ok: true, slide: slideIdx, shape: shape.index, path }));
+    }
+
+    case 'notes.set': {
+      const file = getActiveFile(state);
+      if (!file) return err('ppt notes.set: no active presentation');
+      const slideIdx = parseIntOrNull(cmd.positionals[0]);
+      const text = cmd.flags.text;
+      if (!slideIdx || text === undefined) return err('ppt notes.set: need <slide_index> --text');
+      const slide = file.slides[slideIdx - 1];
+      if (!slide) return err(`ppt notes.set: slide ${slideIdx} not found`);
+      slide.notes = text;
+      file.dirty = true;
+      return ok(JSON.stringify({ ok: true, slide: slideIdx }));
+    }
+
+    case 'notes.get': {
+      const file = getActiveFile(state);
+      if (!file) return err('ppt notes.get: no active presentation');
+      const slideIdx = parseIntOrNull(cmd.positionals[0]);
+      if (!slideIdx) return err('ppt notes.get: need <slide_index>');
+      const slide = file.slides[slideIdx - 1];
+      if (!slide) return err(`ppt notes.get: slide ${slideIdx} not found`);
+      return ok(slide.notes ?? '');
+    }
+
+    case 'table.add': {
+      const file = getActiveFile(state);
+      if (!file) return err('ppt table.add: no active presentation');
+      const slideIdx = parseIntOrNull(cmd.positionals[0]);
+      const rows = parseIntOrNull(cmd.flags.rows);
+      const cols = parseIntOrNull(cmd.flags.cols);
+      if (!slideIdx || !rows || !cols) return err('ppt table.add: need <slide_index> --rows --cols');
+      const slide = file.slides[slideIdx - 1];
+      if (!slide) return err(`ppt table.add: slide ${slideIdx} not found`);
+      const table: PptTable = { rows, cols, cells: [] };
+      const shape: PptShape = {
+        index: nextShapeIndex(slide),
+        name: 'Table',
+        table,
+        left: parseIntOrNull(cmd.flags.left) ?? 100,
+        top: parseIntOrNull(cmd.flags.top) ?? 100,
+        width: parseIntOrNull(cmd.flags.width) ?? 600,
+        height: parseIntOrNull(cmd.flags.height) ?? 200,
+      };
+      slide.shapes.push(shape);
+      file.dirty = true;
+      return ok(JSON.stringify({ ok: true, slide: slideIdx, shape: shape.index, rows, cols }));
+    }
+
+    case 'table.set': {
+      const file = getActiveFile(state);
+      if (!file) return err('ppt table.set: no active presentation');
+      const slideIdx = parseIntOrNull(cmd.positionals[0]);
+      const shapeIdx = parseIntOrNull(cmd.flags.shape);
+      const r = parseIntOrNull(cmd.flags.row);
+      const c = parseIntOrNull(cmd.flags.col);
+      const text = cmd.flags.text;
+      if (!slideIdx || !shapeIdx || !r || !c || text === undefined) {
+        return err('ppt table.set: need <slide_index> --shape --row --col --text');
+      }
+      const slide = file.slides[slideIdx - 1];
+      const shape = slide?.shapes[shapeIdx - 1];
+      if (!shape) return err(`ppt table.set: shape ${slideIdx}/${shapeIdx} not found`);
+      if (!shape.table) return err(`ppt table.set: shape ${slideIdx}/${shapeIdx} is not a table`);
+      if (r < 1 || r > shape.table.rows) return err(`ppt table.set: row ${r} out of range`);
+      if (c < 1 || c > shape.table.cols) return err(`ppt table.set: col ${c} out of range`);
+      const existing = shape.table.cells.find(x => x.row === r && x.col === c);
+      if (existing) existing.text = text;
+      else shape.table.cells.push({ row: r, col: c, text });
+      file.dirty = true;
+      return ok(JSON.stringify({ ok: true, slide: slideIdx, shape: shapeIdx, row: r, col: c }));
+    }
+
+    case 'charts': {
+      const file = getActiveFile(state);
+      if (!file) return err('ppt charts: no active presentation');
+      const slideIdx = parseIntOrNull(cmd.positionals[0]);
+      if (!slideIdx) return err('ppt charts: missing <slide_index>');
+      const slide = file.slides[slideIdx - 1];
+      if (!slide) return err(`ppt charts: slide ${slideIdx} not found`);
+      const lines = ['shape\ttype\ttitle\tseries'];
+      for (const sh of slide.shapes) {
+        if (sh.chart) {
+          lines.push([sh.index, sh.chart.type, sh.chart.title ?? '', sh.chart.series.length].join('\t'));
+        }
+      }
+      return ok(lines.join('\n'));
+    }
+
+    case 'chart.add': {
+      const file = getActiveFile(state);
+      if (!file) return err('ppt chart.add: no active presentation');
+      const slideIdx = parseIntOrNull(cmd.positionals[0]);
+      if (!slideIdx) return err('ppt chart.add: missing <slide_index>');
+      const slide = file.slides[slideIdx - 1];
+      if (!slide) return err(`ppt chart.add: slide ${slideIdx} not found`);
+      const rawData = cmd.flags.data;
+      if (!rawData) return err('ppt chart.add: missing --data');
+      const chart = parseCsvChartData(rawData);
+      if (!chart) return err('ppt chart.add: invalid --data CSV (need header + >=1 data row)');
+      chart.type = normalizeChartType(cmd.flags.type);
+      if (cmd.flags.title !== undefined && cmd.flags.title !== '') chart.title = cmd.flags.title;
+      const shape = {
+        index: nextShapeIndex(slide),
+        name: 'Chart',
+        left: parseIntOrNull(cmd.flags.left) ?? 80,
+        top: parseIntOrNull(cmd.flags.top) ?? 120,
+        width: parseIntOrNull(cmd.flags.width) ?? 480,
+        height: parseIntOrNull(cmd.flags.height) ?? 300,
+        chart,
+      };
+      slide.shapes.push(shape);
+      file.dirty = true;
+      return ok(JSON.stringify({ ok: true, slide: slideIdx, shape: shape.index, type: chart.type, series: chart.series.length }));
+    }
+
+    case 'chart.update': {
+      const file = getActiveFile(state);
+      if (!file) return err('ppt chart.update: no active presentation');
+      const slideIdx = parseIntOrNull(cmd.positionals[0]);
+      const shapeIdx = parseIntOrNull(cmd.flags.shape);
+      if (!slideIdx || !shapeIdx) return err('ppt chart.update: need <slide_index> --shape');
+      const slide = file.slides[slideIdx - 1];
+      const shape = slide?.shapes[shapeIdx - 1];
+      if (!shape) return err(`ppt chart.update: shape ${slideIdx}/${shapeIdx} not found`);
+      if (!shape.chart) return err(`ppt chart.update: shape ${slideIdx}/${shapeIdx} is not a chart`);
+      const rawData = cmd.flags.data;
+      if (!rawData) return err('ppt chart.update: missing --data');
+      const parsed = parseCsvChartData(rawData);
+      if (!parsed) return err('ppt chart.update: invalid --data CSV');
+      shape.chart = { type: shape.chart.type, title: shape.chart.title, categories: parsed.categories, series: parsed.series };
+      file.dirty = true;
+      return ok(JSON.stringify({ ok: true, slide: slideIdx, shape: shapeIdx, series: parsed.series.length }));
+    }
+
+    case 'chart.delete': {
+      const file = getActiveFile(state);
+      if (!file) return err('ppt chart.delete: no active presentation');
+      const slideIdx = parseIntOrNull(cmd.positionals[0]);
+      const shapeIdx = parseIntOrNull(cmd.flags.shape);
+      if (!slideIdx || !shapeIdx) return err('ppt chart.delete: need <slide_index> --shape');
+      const slide = file.slides[slideIdx - 1];
+      const shape = slide?.shapes[shapeIdx - 1];
+      if (!shape) return err(`ppt chart.delete: shape ${slideIdx}/${shapeIdx} not found`);
+      if (!shape.chart) return err(`ppt chart.delete: shape ${slideIdx}/${shapeIdx} is not a chart`);
+      slide.shapes.splice(shapeIdx - 1, 1);
+      slide.shapes.forEach((s, i) => { s.index = i + 1; });
+      file.dirty = true;
+      return ok(JSON.stringify({ ok: true, slide: slideIdx, shape: shapeIdx }));
     }
 
     default:
